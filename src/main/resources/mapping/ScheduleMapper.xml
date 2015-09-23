@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.tms.mapper.ScheduleMapper">
+
+    <!-- Get mappable program data -->
+    <update id="saveScheduleStatusReport" parameterType="com.tms.vo.ScheduleStatusReportVO">
+
+        <if test="status != null &amp;&amp; importToken != null &amp;&amp; gmtAirDateTime != null &amp;&amp; remoteProgservId != null">
+            UPDATE optimizer.timeslots
+            SET
+            status = #{status},
+            last_modified_datetime = now(),
+            last_modified_by = 'scheduleLoader'
+            <if test="status == 'COMPLETE'">
+                , completed_datetime = now()
+            </if>
+            WHERE
+            import_token = #{importToken}
+            AND gmt_air_date_time = #{gmtAirDateTime}::timestamp
+            AND remote_station_id = #{remoteProgservId}
+        </if>
+
+    </update>
+
+    <!-- Get mappable program data -->
+    <select id="getScheduleStatusReport" resultType="com.tms.vo.ScheduleStatusReportVO" useCache="false">
+        select
+        import_token as importToken,
+        remote_station_id as remoteProgservId,
+        gmt_air_date_time as gmtAirDateTime,
+        status as status
+        from
+        optimizer.timeslots order by last_modified_datetime limit 1000
+    </select>
+</mapper>
